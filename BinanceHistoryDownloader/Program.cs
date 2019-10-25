@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Binance.Net;
 using Binance.Net.Objects;
 using CryptoExchange.Net.Authentication;
+using CryptoExchange.Net.Interfaces;
+using CryptoExchange.Net.RateLimiter;
 using CsvHelper;
 using CsvHelper.Configuration;
 using CsvHelper.TypeConversion;
@@ -17,18 +20,26 @@ namespace BinanceHistoryDownloader
         [SuppressMessage("ReSharper", "StringLiteralTypo")]
         private static void Main(string[] args)
         {
-            var options = new BinanceClientOptions
+            ApiCredentials ApiCredentials = new ApiCredentials("", "");
+            IRateLimiter rateLimiter = new RateLimiterPerEndpoint(1000, TimeSpan.FromMinutes(1));
+            List<IRateLimiter> limiters = new List<IRateLimiter>
             {
-                //todo add key and secret
-                ApiCredentials = new ApiCredentials("","")
+                rateLimiter
             };
+            BinanceClientOptions options = new BinanceClientOptions
+            {
+                ApiCredentials = ApiCredentials,
+                AutoTimestamp = true,
+                RateLimiters = limiters
+            };
+
             var client = new BinanceClient(options);
             Console.WriteLine("Getting Deposits");
-            var deposits = client.GetDepositHistory().Data.List.OrderBy(c => c.InsertTime).ToList();
+            var deposits = client.GetDepositHistory().Data.OrderBy(c => c.InsertTime).ToList();
             WriteCsv(deposits, "Binance_DepositHistory.csv", new DepositClassMap());
             WriteCsv(deposits, "Binance_DepositHistoryRaw.csv", null);
             Console.WriteLine("Getting Withdrawals");
-            var withdrawals = client.GetWithdrawHistory().Data.List.OrderBy(c => c.ApplyTime).ToList();
+            var withdrawals = client.GetWithdrawalHistory().Data.OrderBy(c => c.ApplyTime).ToList();
             WriteCsv(withdrawals, "Binance_WithdrawalHistory.csv", new WithdrawalClassMap());
             WriteCsv(withdrawals, "Binance_WithdrawalHistoryRaw.csv", null);
             Console.WriteLine("Getting Distributions");
@@ -42,20 +53,37 @@ namespace BinanceHistoryDownloader
             var trades = new List<BinanceTrade>();
             var markets = client.GetExchangeInfo().Data.Symbols.OrderBy(c => c.Name);
             foreach (var market in markets)
-                try
-                {
-                    Console.WriteLine("Getting History From " + market.Name);
-                    trades.AddRange(client.GetMyTrades(market.Name).Data);
-                }
-                catch
-                {
-                    Console.WriteLine("Getting History From " + market.Name + "Failed");
-                }
+                DownloadTrades(client, trades, market);
+           
 
             WriteCsv(trades.OrderBy(c => c.Time), "Binance_TradeHistory.csv", new TradeHistoryClassMap());
             WriteCsv(trades.OrderBy(c => c.Time), "Binance_TradeHistoryRaw.csv", null);
         }
 
+        private static void DownloadTrades(BinanceClient client, List<BinanceTrade> trades, BinanceSymbol market)
+        {
+            try
+            {
+                Console.WriteLine("Getting History From " + market.Name);
+                var tradeResponse = client.GetMyTrades(market.Name);
+                if (tradeResponse.Success)
+                {
+                    trades.AddRange(tradeResponse.Data);
+                }
+                else
+                {
+                    Console.WriteLine(tradeResponse.Error);
+                    Thread.Sleep(1000);
+                    DownloadTrades(client, trades, market);                    
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Getting History From " + market.Name + " Failed " + ex.Message);
+            }
+           
+        }
 
         private static void WriteCsv<T>(IEnumerable<T> records, string csvName, ClassMap classMap)
         {
