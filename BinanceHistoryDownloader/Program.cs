@@ -43,7 +43,7 @@ namespace BinanceHistoryDownloader
             WriteCsv(withdrawals, "Binance_WithdrawalHistory.csv", new WithdrawalClassMap());
             WriteCsv(withdrawals, "Binance_WithdrawalHistoryRaw.csv", null);
             Console.WriteLine("Getting Distributions");
-            var distribution = client.GetAssetDividendRecords().Data.Rows.OrderBy(c => c.Timestamp);;
+            var distribution = client.GetAssetDividendRecords().Data.Rows.OrderBy(c => c.Timestamp);
             WriteCsv(distribution, "Binance_DistributionHistory.csv", null);
             Console.WriteLine("Getting DustLog");
             var dustLog = client.GetDustLog().Data;
@@ -54,7 +54,7 @@ namespace BinanceHistoryDownloader
             var markets = client.GetExchangeInfo().Data.Symbols.OrderBy(c => c.Name);
             foreach (var market in markets)
                 DownloadTrades(client, trades, market);
-           
+
 
             WriteCsv(trades.OrderBy(c => c.Time), "Binance_TradeHistory.csv", new TradeHistoryClassMap());
             WriteCsv(trades.OrderBy(c => c.Time), "Binance_TradeHistoryRaw.csv", null);
@@ -74,7 +74,7 @@ namespace BinanceHistoryDownloader
                 {
                     Console.WriteLine(tradeResponse.Error);
                     Thread.Sleep(1000);
-                    DownloadTrades(client, trades, market);                    
+                    DownloadTrades(client, trades, market);
                 }
 
             }
@@ -82,7 +82,7 @@ namespace BinanceHistoryDownloader
             {
                 Console.WriteLine("Getting History From " + market.Name + " Failed " + ex.Message);
             }
-           
+
         }
 
         private static void WriteCsv<T>(IEnumerable<T> records, string csvName, ClassMap classMap)
