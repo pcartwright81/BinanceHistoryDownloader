@@ -12,7 +12,7 @@ using CryptoExchange.Net.RateLimiter;
 using CsvHelper;
 using CsvHelper.Configuration;
 using CsvHelper.TypeConversion;
-
+using Microsoft.Extensions.Configuration;
 namespace BinanceHistoryDownloader
 {
     internal class Program
@@ -20,7 +20,23 @@ namespace BinanceHistoryDownloader
         [SuppressMessage("ReSharper", "StringLiteralTypo")]
         private static void Main(string[] args)
         {
-            ApiCredentials ApiCredentials = new ApiCredentials("", "");
+            var builder = new ConfigurationBuilder().AddUserSecrets<BinanceKeys>();
+            IConfiguration Configuration = builder.Build();
+            var binanceKeys = Configuration.GetSection("BinanceKeys").GetChildren();
+            string apiKey = null;
+            string apiSecret = null;
+            foreach(var binanceKey in binanceKeys)
+            {
+                if(binanceKey.Key == "APIKey")
+                {
+                    apiKey = binanceKey.Value;
+                }
+                else
+                {
+                    apiSecret = binanceKey.Value;
+                }
+            }
+            ApiCredentials ApiCredentials = new ApiCredentials(apiKey, apiSecret);
             IRateLimiter rateLimiter = new RateLimiterPerEndpoint(1000, TimeSpan.FromMinutes(1));
             List<IRateLimiter> limiters = new List<IRateLimiter>
             {
