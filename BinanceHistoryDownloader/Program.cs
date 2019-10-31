@@ -22,21 +22,8 @@ namespace BinanceHistoryDownloader
         {
             var builder = new ConfigurationBuilder().AddUserSecrets<BinanceKeys>();
             IConfiguration Configuration = builder.Build();
-            var binanceKeys = Configuration.GetSection("BinanceKeys").GetChildren();
-            string apiKey = null;
-            string apiSecret = null;
-            foreach(var binanceKey in binanceKeys)
-            {
-                if(binanceKey.Key == "APIKey")
-                {
-                    apiKey = binanceKey.Value;
-                }
-                else
-                {
-                    apiSecret = binanceKey.Value;
-                }
-            }
-            ApiCredentials ApiCredentials = new ApiCredentials(apiKey, apiSecret);
+            var binanceKeys = Configuration.GetSection("BinanceKeys").Get<BinanceKeys>();
+            ApiCredentials ApiCredentials = new ApiCredentials(binanceKeys.APIKey, binanceKeys.APISecret);
             IRateLimiter rateLimiter = new RateLimiterPerEndpoint(1000, TimeSpan.FromMinutes(1));
             List<IRateLimiter> limiters = new List<IRateLimiter>
             {
