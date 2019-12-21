@@ -1,4 +1,4 @@
-﻿namespace BinanceHistoryDownloader
+﻿namespace BinanceHistoryDownloader.Models
 {
     public class BinanceKeys
     {
