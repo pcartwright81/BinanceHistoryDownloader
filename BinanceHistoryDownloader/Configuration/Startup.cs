@@ -34,7 +34,10 @@ namespace BinanceHistoryDownloader.Configuration
             var apiSettings = new AppSettings();
             services.AddLogging(opt =>
             {
-                opt.AddConsole();
+                opt.AddConsole(c =>
+                {
+                    c.TimestampFormat = "[HH:mm:ss] ";
+                });
                 opt.SetMinimumLevel(LogLevel.Debug);
             });
             services.Configure<BinanceKeys>(_configuration.GetSection(nameof(BinanceKeys)));
