@@ -46,7 +46,7 @@ namespace BinanceHistoryDownloader
             var deposits = new List<BinanceDeposit>();
             while (true)
             {
-                if (endDate < new DateTime(2017,01,01))
+                if (endDate < new DateTime(2017,07,01))
                 {
                     break;
                 }
