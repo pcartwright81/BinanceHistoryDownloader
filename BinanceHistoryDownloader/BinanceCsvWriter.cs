@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -40,10 +41,23 @@ namespace BinanceHistoryDownloader
         public async Task WriteDeposits(bool official)
         {
             Logger.LogDebug("Starting Deposits");
-            var binanceResult = await Client.GetDepositHistoryAsync();
-            if (!binanceResult.Success) Logger.LogError(binanceResult.Error?.ToString());
+            var endDate = new DateTime(2019,07,31);
+            var startDate = endDate.AddDays(-90);
+            var deposits = new List<BinanceDeposit>();
+            while (true)
+            {
+                if (endDate < new DateTime(2017,01,01))
+                {
+                    break;
+                }
+                var hist = await Client.GetDepositHistoryAsync(null,null,startDate, endDate);
+                if (!hist.Success) Logger.LogError(hist.Error?.ToString());
+                deposits.AddRange(hist.Data);
+                endDate = startDate.AddDays(-91);
+                startDate = endDate.AddDays(-90);
+               
+            }
 
-            var deposits = binanceResult.Data.OrderBy(c => c.InsertTime).ToList();
             if (official)
                 WriteCsv(deposits, "Binance_DepositHistory.csv", new DepositClassMap());
             else
@@ -129,7 +143,7 @@ namespace BinanceHistoryDownloader
         private static void WriteCsv<T>(IEnumerable<T> records, string csvName, ClassMap classMap)
         {
             using var writer = new StreamWriter(csvName);
-            using var csv = new CsvWriter(writer);
+            using var csv = new CsvWriter(writer, CultureInfo.CurrentCulture);
             if (classMap != null) csv.Configuration.RegisterClassMap(classMap);
             csv.WriteRecords(records);
         }
