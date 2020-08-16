@@ -1,4 +1,4 @@
-﻿using Binance.Net.Objects;
+﻿using Binance.Net.Objects.Spot.SpotData;
 using CsvHelper.Configuration;
 
 namespace BinanceHistoryDownloader.Models
@@ -7,7 +7,7 @@ namespace BinanceHistoryDownloader.Models
     {
         public TradeHistoryClassMap()
         {
-            Map(m => m.Time).Name("Date(UTC)");
+            Map(m => m.TradeTime).Name("Date(UTC)");
             Map(m => m.Symbol).Name("Market");
             Map(m => m.IsBuyer).TypeConverter<TradeTypeConverter>().Name("Type");
             Map(m => m.Price).Name("Price");

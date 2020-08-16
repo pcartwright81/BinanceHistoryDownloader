@@ -1,4 +1,4 @@
-﻿using Binance.Net.Objects;
+﻿using Binance.Net.Objects.Spot.WalletData;
 using CsvHelper.Configuration;
 
 namespace BinanceHistoryDownloader.Models
@@ -8,7 +8,7 @@ namespace BinanceHistoryDownloader.Models
         public DepositClassMap()
         {
             Map(m => m.InsertTime).Name("Date");
-            Map(m => m.Asset).Name("Coin");
+            Map(m => m.Coin).Name("Coin");
             Map(m => m.Amount).Name("Amount");
             Map().Constant(0).Name("TransactionFee");
             Map(m => m.Address).Name("Address");

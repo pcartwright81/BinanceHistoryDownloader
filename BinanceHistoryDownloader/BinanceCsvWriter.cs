@@ -6,7 +6,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Binance.Net;
-using Binance.Net.Objects;
+using Binance.Net.Objects.Spot;
+using Binance.Net.Objects.Spot.MarketData;
+using Binance.Net.Objects.Spot.SpotData;
+using Binance.Net.Objects.Spot.WalletData;
 using BinanceHistoryDownloader.Models;
 using CryptoExchange.Net.Authentication;
 using CryptoExchange.Net.Interfaces;
@@ -20,8 +23,10 @@ namespace BinanceHistoryDownloader
 {
     public class BinanceCsvWriter : IBinanceCsvWriter
     {
+
         public BinanceCsvWriter(IOptions<BinanceKeys> binanceKeys, ILogger<BinanceCsvWriter> logger)
         {
+            
             var keys = binanceKeys.Value;
             Logger = logger;
             Client = new BinanceClient(new BinanceClientOptions
@@ -35,8 +40,9 @@ namespace BinanceHistoryDownloader
             });
         }
 
+        public BinanceClient Client { get; set; }
+
         private ILogger<BinanceCsvWriter> Logger { get; }
-        private BinanceClient Client { get; }
 
         public async Task WriteDeposits(bool official)
         {
@@ -50,7 +56,7 @@ namespace BinanceHistoryDownloader
                 {
                     break;
                 }
-                var hist = await Client.GetDepositHistoryAsync(null,null,startDate, endDate);
+                var hist = await Client.Deposit.GetDepositHistoryAsync(null,null,startDate, endDate);
                 if (!hist.Success) Logger.LogError(hist.Error?.ToString());
                 deposits.AddRange(hist.Data);
                 endDate = startDate.AddDays(-91);
@@ -69,7 +75,7 @@ namespace BinanceHistoryDownloader
         public async Task WriteWithdrawals(bool official)
         {
             Logger.LogDebug("Starting Withdrawals");
-            var binanceResult = await Client.GetWithdrawalHistoryAsync();
+            var binanceResult = await Client.Withdraw.GetWithdrawalHistoryAsync();
             if (!binanceResult.Success) Logger.LogError(binanceResult.Error?.ToString());
             var withdrawals = binanceResult.Data.OrderBy(c => c.ApplyTime).ToList();
             if (official)
@@ -83,23 +89,23 @@ namespace BinanceHistoryDownloader
         {
             Logger.LogDebug("Starting Trades");
             var trades = new List<BinanceTrade>();
-            var binanceResult = await Client.GetExchangeInfoAsync();
+            var binanceResult = await Client.System.GetExchangeInfoAsync();
             if (!binanceResult.Success) Logger.LogError(binanceResult.Error?.ToString());
             var markets = binanceResult.Data.Symbols.OrderBy(c => c.Name);
             foreach (var market in markets)
                 DownloadTrades(trades, market);
 
             if (official)
-                WriteCsv(trades.OrderBy(c => c.Time), "Binance_TradeHistory.csv", new TradeHistoryClassMap());
+                WriteCsv(trades.OrderBy(c => c.TradeTime), "Binance_TradeHistory.csv", new TradeHistoryClassMap());
             else
-                WriteCsv(trades.OrderBy(c => c.Time), "Binance_TradeHistoryRaw.csv", null);
+                WriteCsv(trades.OrderBy(c => c.TradeTime), "Binance_TradeHistoryRaw.csv", null);
             Logger.LogDebug("Finished Trades");
         }
 
         public async Task WriteDustLog()
         {
             Logger.LogDebug("Starting DustLog");
-            var binanceResult = await Client.GetDustLogAsync();
+            var binanceResult = await Client.Dust.GetDustLogAsync();
             if (!binanceResult.Success) Logger.LogError(binanceResult.Error?.ToString());
             var dustLog = binanceResult.Data;
             var dustLogDetails = new List<BinanceDustLogDetails>();
@@ -111,7 +117,7 @@ namespace BinanceHistoryDownloader
         public async Task WriteDistribution()
         {
             Logger.LogDebug("Starting Distributions");
-            var binanceResult = await Client.GetAssetDividendRecordsAsync();
+            var binanceResult = await Client.Account.GetAssetDividendRecordsAsync();
             var distribution = binanceResult.Data.Rows.OrderBy(c => c.Timestamp);
             WriteCsv(distribution, "Binance_DistributionHistory.csv", null);
             Logger.LogDebug("Finished Withdrawals");
@@ -122,15 +128,15 @@ namespace BinanceHistoryDownloader
             try
             {
                 Logger.LogDebug($"Getting History from {market.Name}");
-                var tradeResponse = Client.GetMyTrades(market.Name);
+                var tradeResponse = Client.Spot.Order.GetMyTrades(market.Name);
                 if (tradeResponse.Success)
                 {
                     trades.AddRange(tradeResponse.Data);
                 }
                 else
                 {
-                    Logger.LogError(tradeResponse.Error.ToString());
-                    Thread.Sleep(1000);
+                    Logger.LogError(tradeResponse.Error?.ToString());
+                    Thread.Sleep(3000);
                     DownloadTrades(trades, market);
                 }
             }

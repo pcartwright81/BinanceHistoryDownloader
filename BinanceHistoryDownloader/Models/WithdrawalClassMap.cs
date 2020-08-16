@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Text;
-using Binance.Net.Objects;
+﻿using System.Diagnostics.CodeAnalysis;
+using Binance.Net.Objects.Spot.WalletData;
 using CsvHelper.Configuration;
 
 namespace BinanceHistoryDownloader.Models
