@@ -3,13 +3,13 @@ using System.Threading.Tasks;
 
 namespace BinanceHistoryDownloader
 {
-    public class Application
+    public class ConsoleApplication
     {
         private IBinanceCsvWriter Writer { get; }
 
         #region Constructors
 
-        public Application(IBinanceCsvWriter writer)
+        public ConsoleApplication(IBinanceCsvWriter writer)
         {
             Writer = writer;
         }

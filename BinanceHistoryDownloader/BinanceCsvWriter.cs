@@ -23,10 +23,8 @@ namespace BinanceHistoryDownloader
 {
     public class BinanceCsvWriter : IBinanceCsvWriter
     {
-
         public BinanceCsvWriter(IOptions<BinanceKeys> binanceKeys, ILogger<BinanceCsvWriter> logger)
         {
-            
             var keys = binanceKeys.Value;
             Logger = logger;
             Client = new BinanceClient(new BinanceClientOptions
@@ -35,8 +33,8 @@ namespace BinanceHistoryDownloader
                 AutoTimestamp = true,
                 RateLimiters = new List<IRateLimiter>
                 {
-                    new RateLimiterPerEndpoint(1000, TimeSpan.FromMinutes(1))
-                }
+                    new RateLimiterPerEndpoint(1000, TimeSpan.FromMinutes(1)),
+                },
             });
         }
 
@@ -47,21 +45,17 @@ namespace BinanceHistoryDownloader
         public async Task WriteDeposits(bool official)
         {
             Logger.LogDebug("Starting Deposits");
-            var endDate = new DateTime(2019,07,31);
+            var endDate = new DateTime(2019, 07, 31);
             var startDate = endDate.AddDays(-90);
             var deposits = new List<BinanceDeposit>();
             while (true)
             {
-                if (endDate < new DateTime(2017,07,01))
-                {
-                    break;
-                }
-                var hist = await Client.Deposit.GetDepositHistoryAsync(null,null,startDate, endDate);
+                if (endDate < new DateTime(2017, 07, 01)) break;
+                var hist = await Client.Deposit.GetDepositHistoryAsync(null, null, startDate, endDate);
                 if (!hist.Success) Logger.LogError(hist.Error?.ToString());
                 deposits.AddRange(hist.Data);
                 endDate = startDate.AddDays(-91);
                 startDate = endDate.AddDays(-90);
-               
             }
 
             if (official)

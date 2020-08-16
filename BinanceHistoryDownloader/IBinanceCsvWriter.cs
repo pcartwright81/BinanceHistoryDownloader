@@ -13,6 +13,5 @@ namespace BinanceHistoryDownloader
         Task WriteDustLog();
 
         Task WriteDistribution();
-
     }
 }
