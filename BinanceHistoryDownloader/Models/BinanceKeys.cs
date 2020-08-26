@@ -2,8 +2,8 @@
 {
     public class BinanceKeys
     {
-        public string APIKey { get; set; }
+        public string ApiKey { get; set; }
 
-        public string APISecret { get; set; }
+        public string ApiSecret { get; set; }
     }
 }

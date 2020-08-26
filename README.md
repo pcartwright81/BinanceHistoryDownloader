@@ -4,8 +4,8 @@ In order to use this application you must manage user secrets and put in your Ap
 
 {
   "BinanceKeys": {
-    "APIKey": "INSERT HERE",
-    "APISecret": "INSERT HERE"
+    "ApiKey": "INSERT HERE",
+    "ApiSecret": "INSERT HERE"
   }
 }
 

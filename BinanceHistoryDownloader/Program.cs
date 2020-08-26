@@ -31,7 +31,9 @@ namespace BinanceHistoryDownloader
             var services = new ServiceCollection();
             services.AddLogging(opt =>
             {
+#pragma warning disable 618
                 opt.AddConsole(c => { c.TimestampFormat = "[HH:mm:ss] "; });
+#pragma warning restore 618
                 opt.SetMinimumLevel(LogLevel.Debug);
             });
             services.Configure<BinanceKeys>(_configuration.GetSection(nameof(BinanceKeys)));
