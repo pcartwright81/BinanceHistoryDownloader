@@ -51,7 +51,7 @@ namespace BinanceHistoryDownloader
             while (true)
             {
                 if (endDate < new DateTime(2017, 07, 01)) break;
-                var hist = await Client.Deposit.GetDepositHistoryAsync(null, null, startDate, endDate);
+                var hist = await Client.WithdrawDeposit.GetDepositHistoryAsync(null, null, startDate, endDate);
                 if (!hist.Success)
                 {
                     Logger.LogError(hist.Error?.ToString());
@@ -73,7 +73,7 @@ namespace BinanceHistoryDownloader
         public async Task WriteWithdrawals(bool official)
         {
             Logger.LogDebug("Starting Withdrawals");
-            var binanceResult = await Client.Withdraw.GetWithdrawalHistoryAsync();
+            var binanceResult = await Client.WithdrawDeposit.GetWithdrawalHistoryAsync();
             if (!binanceResult.Success)
             {
                 Logger.LogError(binanceResult.Error?.ToString());
@@ -91,7 +91,7 @@ namespace BinanceHistoryDownloader
         {
             Logger.LogDebug("Starting Trades");
             var trades = new List<BinanceTrade>();
-            var binanceResult = await Client.System.GetExchangeInfoAsync();
+            var binanceResult = await Client.Spot.System.GetExchangeInfoAsync();
             if (!binanceResult.Success)
             {
                 Logger.LogError(binanceResult.Error?.ToString());
@@ -111,7 +111,7 @@ namespace BinanceHistoryDownloader
         public async Task WriteDustLog()
         {
             Logger.LogDebug("Starting DustLog");
-            var binanceResult = await Client.Dust.GetDustLogAsync();
+            var binanceResult = await Client.General.GetDustLogAsync();
             if (!binanceResult.Success)
             {
                 Logger.LogError(binanceResult.Error?.ToString());
@@ -127,7 +127,7 @@ namespace BinanceHistoryDownloader
         public async Task WriteDistribution()
         {
             Logger.LogDebug("Starting Distributions");
-            var binanceResult = await Client.Account.GetAssetDividendRecordsAsync();
+            var binanceResult = await Client.General.GetAssetDividendRecordsAsync();
             if (!binanceResult.Success)
             {
                 Logger.LogError(binanceResult.Error?.ToString());
@@ -165,7 +165,7 @@ namespace BinanceHistoryDownloader
         {
             using var writer = new StreamWriter(csvName);
             using var csv = new CsvWriter(writer, CultureInfo.CurrentCulture);
-            if (classMap != null) csv.Configuration.RegisterClassMap(classMap);
+            if (classMap != null) csv.Context.RegisterClassMap(classMap);
             csv.WriteRecords(records);
         }
     }
