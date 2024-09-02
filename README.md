@@ -11,4 +11,4 @@ In order to use this application you must manage user secrets and put in your Ap
 
 If you give the application the parameter of true it will export in a format almost exactly like Binance would have given you.
 
-This application has been arvhived because of Binance kicking out US Citizens.
+This application has been archived because of Binance kicking out US Citizens.
